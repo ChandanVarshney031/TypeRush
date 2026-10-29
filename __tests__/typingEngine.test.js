@@ -115,6 +115,11 @@ describe("buildCharacterStream", () => {
     expect(buildCharacterStream("", "")).toEqual([]);
   });
 
+  it("returns an empty array when text is null or undefined", () => {
+    expect(buildCharacterStream(null, "")).toEqual([]);
+    expect(buildCharacterStream(undefined, "")).toEqual([]);
+  });
+
   it("marks all chars beyond the cursor as untyped when nothing has been typed", () => {
     const stream = buildCharacterStream("hello", "");
     // Index 0 is the cursor position (status = "current").
@@ -140,9 +145,14 @@ describe("buildCharacterStream", () => {
     expect(stream[1].status).toBe("incorrect");
   });
 
-  it("marks a character as incorrect when it is in errorIndices", () => {
+  it("marks a character as incorrect when it is in errorIndices Set", () => {
     const errorIndices = new Set([0]);
     const stream = buildCharacterStream("hello", "hello", errorIndices);
+    expect(stream[0].status).toBe("incorrect");
+  });
+
+  it("handles array errorIndices gracefully", () => {
+    const stream = buildCharacterStream("hello", "hello", [0]);
     expect(stream[0].status).toBe("incorrect");
   });
 

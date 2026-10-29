@@ -57,6 +57,11 @@ describe("getCareerStats", () => {
     expect(getCareerStats()).toEqual(DEFAULT_STATS);
   });
 
+  it("returns DEFAULT_STATS when window is undefined (SSR mode)", () => {
+    delete globalThis.window;
+    expect(getCareerStats()).toEqual(DEFAULT_STATS);
+  });
+
   it("returns merged stats when valid JSON exists in localStorage", () => {
     const saved = { bestWpm: 120, totalRaces: 5, wins: 3, losses: 2, bestAccuracy: 98, bestCombo: 25, history: [] };
     localStorageMock.setItem(STORAGE_KEY, JSON.stringify(saved));
@@ -73,13 +78,33 @@ describe("getCareerStats", () => {
     expect(stats.history).toEqual([]);
   });
 
-  it("returns DEFAULT_STATS when localStorage contains corrupted JSON", () => {
+  it("returns DEFAULT_STATS when localStorage contains corrupted JSON syntax", () => {
     localStorageMock.setItem(STORAGE_KEY, "NOT_VALID_JSON{{{{");
     expect(getCareerStats()).toEqual(DEFAULT_STATS);
   });
 
   it("returns DEFAULT_STATS when localStorage contains null bytes / garbage", () => {
     localStorageMock.setItem(STORAGE_KEY, "\0\0\0");
+    expect(getCareerStats()).toEqual(DEFAULT_STATS);
+  });
+
+  it("returns DEFAULT_STATS when localStorage contains a non-object JSON array", () => {
+    localStorageMock.setItem(STORAGE_KEY, JSON.stringify([1, 2, 3]));
+    expect(getCareerStats()).toEqual(DEFAULT_STATS);
+  });
+
+  it("returns DEFAULT_STATS when localStorage contains a JSON primitive number", () => {
+    localStorageMock.setItem(STORAGE_KEY, JSON.stringify(12345));
+    expect(getCareerStats()).toEqual(DEFAULT_STATS);
+  });
+
+  it("returns DEFAULT_STATS when localStorage contains a JSON string primitive", () => {
+    localStorageMock.setItem(STORAGE_KEY, JSON.stringify("corrupted-string"));
+    expect(getCareerStats()).toEqual(DEFAULT_STATS);
+  });
+
+  it("returns DEFAULT_STATS when localStorage contains JSON null literal", () => {
+    localStorageMock.setItem(STORAGE_KEY, "null");
     expect(getCareerStats()).toEqual(DEFAULT_STATS);
   });
 
@@ -160,6 +185,13 @@ describe("saveRaceResult", () => {
 
   it("returns DEFAULT_STATS gracefully when result is null/undefined", () => {
     const { isNewBest, stats } = saveRaceResult(null);
+    expect(isNewBest).toBe(false);
+    expect(stats).toEqual(DEFAULT_STATS);
+  });
+
+  it("returns DEFAULT_STATS gracefully when window is undefined (SSR mode)", () => {
+    delete globalThis.window;
+    const { isNewBest, stats } = saveRaceResult(baseResult);
     expect(isNewBest).toBe(false);
     expect(stats).toEqual(DEFAULT_STATS);
   });

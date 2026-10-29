@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { AISimulator } from "../lib/game/aiEngine.js";
 
 // ─── Constructor / initial state ─────────────────────────────────────────────
@@ -30,6 +30,11 @@ describe("AISimulator – construction", () => {
   it("accepts an empty passageText without throwing", () => {
     expect(() => new AISimulator("easy", "")).not.toThrow();
   });
+
+  it("accepts undefined/null passageText without throwing", () => {
+    expect(() => new AISimulator("easy", null)).not.toThrow();
+    expect(() => new AISimulator("easy", undefined)).not.toThrow();
+  });
 });
 
 // ─── update – zero / empty edge cases ────────────────────────────────────────
@@ -42,6 +47,14 @@ describe("AISimulator – update edge cases", () => {
     expect(distance).toBe(0);
     expect(speed).toBe(0);
     expect(wpm).toBe(0);
+  });
+
+  it("does nothing when dtSeconds is 0 or negative", () => {
+    const ai = new AISimulator("easy", "hello world");
+    ai.update(0, 1000);
+    expect(ai.getState().distance).toBe(0);
+    ai.update(-0.5, 1000);
+    expect(ai.getState().distance).toBe(0);
   });
 
   it("does nothing after the race is already finished", () => {
@@ -67,12 +80,6 @@ describe("AISimulator – update edge cases", () => {
   });
 
   it("sets isFinished and distance=100 when all chars are typed", () => {
-    const ai = new AISimulator("expert", "a");
-    // Manually advance typedChars past the threshold
-    ai.typedChars = 1;
-    ai.isFinished = false;
-    // One more update should not flip isFinished since typedChars == totalChars
-    // but we can force: set typedChars just under and let update finish it
     const shortAi = new AISimulator("expert", "a");
     shortAi.typedChars = 0.999; // just under total of 1
     shortAi.pauseTimer = 0;

@@ -4,6 +4,10 @@ import { calculateTargetSpeed, lerpSpeed } from "../lib/game/physics.js";
 // ─── calculateTargetSpeed ────────────────────────────────────────────────────
 
 describe("calculateTargetSpeed", () => {
+  it("returns 0 when called with no arguments", () => {
+    expect(calculateTargetSpeed()).toBe(0);
+  });
+
   it("returns 0 when wpm is 0", () => {
     expect(calculateTargetSpeed({ wpm: 0 })).toBe(0);
   });
@@ -105,6 +109,10 @@ describe("lerpSpeed", () => {
     expect(lerpSpeed(60, 100, 0)).toBeCloseTo(60, 5);
   });
 
+  it("returns currentSpeed when dtSeconds is negative", () => {
+    expect(lerpSpeed(60, 100, -1)).toBeCloseTo(60, 5);
+  });
+
   it("handles equal currentSpeed and targetSpeed (no change)", () => {
     expect(lerpSpeed(50, 50, 0.5)).toBeCloseTo(50, 5);
   });
@@ -112,5 +120,9 @@ describe("lerpSpeed", () => {
   it("accepts custom accelRate and decelRate", () => {
     // accelRate=10, dt=0.1 → factor=min(1,1)=1 → reaches target immediately
     expect(lerpSpeed(0, 80, 0.1, 10, 2.0)).toBeCloseTo(80, 5);
+  });
+
+  it("defaults to 0 when called with no arguments", () => {
+    expect(lerpSpeed()).toBe(0);
   });
 });
